@@ -4,6 +4,8 @@
 
 
 # Environment Setup
+OS_NAME=$(shell uname -s)
+
 LIBDIRS=-L. 
 INCLUDES=-I.
 CC=gcc 
@@ -13,6 +15,16 @@ LDFLAGS=$(LIBDIRS)
 AR=ar rc
 RANLIB=ranlib
 
+ifeq ($(OS_NAME),Darwin)  # Mac OS X
+LIBDIRS=-L. 
+INCLUDES=-I.
+CC=gcc-5 
+CFLAGS=-c $(INCLUDES) -g -Wall -pthread
+LINK=gcc-5 -g -pthread
+LDFLAGS=$(LIBDIRS)
+AR=ar rc
+RANLIB=ranlib
+endif
 # Suffix rules
 .c.o :
 	${CC} ${CFLAGS} $< -o $@
