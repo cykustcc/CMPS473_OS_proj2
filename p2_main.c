@@ -93,12 +93,16 @@ int main(int argc, char* argv[])
 	for(i=0; i < RTHREADS; i++)
 	{
 		// Task #1 - Create reader threads
+		if(pthread_create(read_thread[i],NULL,thread_reader,NULL))
+			printf("reader_thread %d creation error!",i);
 	}
     
 	/* create writer threads */
 	for(i=0; i < wthreads; i++)
 	{
 		// Task #1 - Create writer threads
+		if(pthread_create(write_thread[i],NULL,thread_writer,NULL))
+			printf("reader_thread %d creation error!",i);
 	}
 
 	/* wait for reader threads to terminate */
