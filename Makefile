@@ -51,6 +51,9 @@ lib$(CSE473LIB).a : $(CSE473LIBOBJS)
 	$(AR) $@ $(CSE473LIBOBJS)
 	$(RANLIB) $@
 
+run:
+	./cse473-p2 ./test 3 > log.txt
+
 clean:
 	rm -f *.o *~ $(TARGETS) $(LIBOBJS) lib$(CSE473LIB).a 
 

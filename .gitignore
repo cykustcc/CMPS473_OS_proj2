@@ -1,3 +1,4 @@
 *.o
 *.dSYM
 cse473-p2
+log.txt
