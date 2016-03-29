@@ -4,6 +4,7 @@
 
 
 # Environment Setup
+# Deafault: Linux
 OS_NAME=$(shell uname -s)
 
 LIBDIRS=-L. 
@@ -52,7 +53,9 @@ lib$(CSE473LIB).a : $(CSE473LIBOBJS)
 	$(RANLIB) $@
 
 run:
-	./cse473-p2 ./test 3 > log.txt
+	untar xvf test.tar
+	./cse473-p2 ./test 3
+	#./cse473-p2 ./test 3 > log.txt
 
 clean:
 	rm -f *.o *~ $(TARGETS) $(LIBOBJS) lib$(CSE473LIB).a 
