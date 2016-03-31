@@ -63,6 +63,7 @@ int wthreads = 0;    // count for number of writer threads
 int main(int argc, char* argv[])
 {
 	int i;
+	int status;
 
 	pthread_t read_thread[RTHREADS];          
 	pthread_t *write_thread;
@@ -93,7 +94,8 @@ int main(int argc, char* argv[])
 	for(i=0; i < RTHREADS; i++)
 	{
 		// Task #1 - Create reader threads
-		if(pthread_create(read_thread[i],NULL,thread_reader,NULL))
+		status=pthread_create(&read_thread[i],NULL,thread_reader,q);
+		if(status!=0)
 			printf("reader_thread %d creation error!",i);
 	}
     
@@ -101,7 +103,8 @@ int main(int argc, char* argv[])
 	for(i=0; i < wthreads; i++)
 	{
 		// Task #1 - Create writer threads
-		if(pthread_create(write_thread[i],NULL,thread_writer,NULL))
+		status=pthread_create(&write_thread[i],NULL,thread_writer,q);
+		if(status!=0)
 			printf("reader_thread %d creation error!",i);
 	}
 
