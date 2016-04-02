@@ -58,6 +58,7 @@ int read_dir(char* dir_name)
     DIR* FD;
     struct dirent* in_file;
     file_node* itr = file_map_list;
+    total_cnt=0;
 
     if (NULL == (FD = opendir (dir_name)))
     {
@@ -92,18 +93,18 @@ void create_file_map(char* filename)
     tmp->file_name = filename;
 
     pthread_rwlock_t *rwlock = (pthread_rwlock_t *)malloc(sizeof(pthread_rwlock_t));
-    pthread_rwlock_init( rwlock, NULL );
+    pthread_rwlock_init( rwlock, NULL ); // don't forget to pthread_rwlock_destroy(&mylock);!
     tmp->lock = rwlock;
     
     if (file_map_list == NULL)
-    {
+    {//let the link list head point to the first node
         tmp->next = NULL;
         tmp->fd = 0;
         tmp->writing = 0;
         file_map_list = tmp;
     }
     else
-    {
+    {//enlarging file_map_list by adding the new entry to the head of the link list
         tmp->fd = file_map_list->fd + 1;
         tmp->writing = 0;
         tmp->next = file_map_list;
