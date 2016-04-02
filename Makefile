@@ -58,6 +58,18 @@ run:
 	@cp ../test/gems.txt ./test
 	./cse473-p2 ./test 2 > log.txt
 
+runtest:
+	@cp ../test/2000010.txt ./test
+	@cp ../test/ethics.txt ./test
+	@cp ../test/gems.txt ./test
+	./cse473-p2 ./test 2 > log.txt
+	python test.py -i log.txt
+	@cp ../test/2000010.txt ./test
+	@cp ../test/ethics.txt ./test
+	@cp ../test/gems.txt ./test
+	./cse473-p2 ./test 2 > log.txt
+	python test.py -i log.txt
+
 clean:
 	rm -f *.o *~ $(TARGETS) $(LIBOBJS) lib$(CSE473LIB).a 
 
