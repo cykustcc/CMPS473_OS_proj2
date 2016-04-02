@@ -2,3 +2,6 @@
 *.dSYM
 cse473-p2
 log.txt
+./test/*
+.DS_Store
+*.txt

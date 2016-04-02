@@ -49,6 +49,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RTHREADS 5   // Number of reader threads
 #define QLENGTH 2    // Max number of jobs queued
 
+// #define DEBUG
+
 pthread_mutex_t mut;                 // lock for synchronizing access to the job queue
 pthread_mutex_t sign_mutex;          // lock for synchronizing access to signatures
 pthread_cond_t condc;                // condition variable for consumer

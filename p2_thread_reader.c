@@ -55,9 +55,20 @@ void print_list(file_node *list)
 		printf("file: %s, Thread: %ld\n", itr->file_name, pthread_self());
 	}
 }
- 
+/******************************************************
+
+    Function    : get_nth_node
+    Description : get the index th node (index>=1)
+    Inputs      : local_list: local copy of the file list, index: the 
+    Outputs     : requrested node
+
+ ******************************************************/
+
 file_node *get_nth_node (file_node** local_list, int index) 
 {
+#ifdef DEBUG
+	printf("ENTER get_nth_node\n");
+#endif	
 	file_node *node, *tmp, *next_node;
 	int i = 1;
 	node = *local_list;
@@ -70,7 +81,11 @@ file_node *get_nth_node (file_node** local_list, int index)
 	     node = node->next, next_node = next_node->next, i++) 
 	{
 		if (index == i+1) 
+		// if (index==i)
 		{
+#ifdef DEBUG
+	printf("EXIT get_nth_node\n");
+#endif	
 			return node;
 		}
 	}
@@ -78,6 +93,9 @@ file_node *get_nth_node (file_node** local_list, int index)
  
 void shuffle_list (file_node** local_list) 
 {
+#ifdef DEBUG
+	printf("ENTER shuffle_list\n");
+#endif	
 	file_node *node, *tmp;
 	int idx;
 	int cnt = total_cnt;
@@ -94,6 +112,7 @@ void shuffle_list (file_node** local_list)
 		else
 		{
 			node = get_nth_node(local_list, cnt);
+			// node = get_nth_node(local_list, idx);
 
 			tmp = node->next;
 			node->next = tmp->next;
@@ -103,12 +122,16 @@ void shuffle_list (file_node** local_list)
 
 		cnt--;
 	}
+#ifdef DEBUG
+	printf("EXIT shuffle_list\n");
+#endif
 }
 
 void copy_list(file_node *src, file_node **dest)
 {
 	file_node *itr, *tmp;
 	for(itr=file_map_list; itr!= NULL; itr=itr->next)
+	// for(itr=src; itr!= NULL; itr=itr->next)
 	{
 		tmp = (file_node*) malloc(sizeof(file_node));
 		tmp->file_name = itr->file_name;
@@ -167,8 +190,15 @@ void* thread_reader(void *Q)
 
 	// Task #2 - mutual exclusion for obtaining "signature" to check for
 	/* get index for the "signature" that this reader will look for */
+	pthread_mutex_lock(&sign_mutex);
+	printf("** SIGN entry ** : Thread number: %ld\n", 
+	       pthread_self());
 	local_sign_idx = sign_idx;
 	sign_idx++;
+	printf("** SIGN exit ** : Sign: %s, Thread number: %ld\n", 
+	       signature[local_sign_idx], pthread_self());
+	pthread_mutex_unlock(&sign_mutex);
+
 
 	/* obtain "signature" for this thread */
 	sign_size = strlen(signature[local_sign_idx]);
@@ -177,22 +207,44 @@ void* thread_reader(void *Q)
 	printf("Reader Thread number: %ld, sign: %s\n", pthread_self(), sign);
 
 	/* Mix up the file list from this thread's perspective */
+#ifdef DEBUG
+	printf("#######################(Before copy_list)\n");
+	print_list(file_map_list);
+	// print_list(&local_list);
+#endif
 	copy_list(file_map_list, &local_list);
-	shuffle_list(&local_list);
+#ifdef DEBUG
+	printf("#######################(After copy_list)\n");
+	print_list(file_map_list);
+	print_list(&local_list);
+#endif
 
+#ifdef DEBUG
+	printf("#######################(Before shuffle_list)\n");
+	print_list(local_list);
+#endif
+	shuffle_list(&local_list);
+#ifdef DEBUG
+	print_list(local_list);
+	printf("#######################(After shuffle_list)\n");
+#endif
 
 	// Task #3 - Ensure that readers have read lock for do_read 
 	/* scan files in "local_list" in order for "signature" */
 	for(itr=local_list; itr!= NULL; itr=itr->next)
 	{
+		rwlock=itr->lock;
+		pthread_mutex_lock(rwlock);
 		printf("** READ Entry ** - Reading file: %s, Sign: %s, Thread number: %ld\n", 
 		       itr->file_name, sign, pthread_self());
 
 		/* scan file "itr" for "signature" and add work to "q" */
+
 		do_read(itr, sign, sign_size, q, rwlock);
 
 		printf("** READ Exit ** - is yielding when done with file: file: %s, Sign: %s, Thread number: %ld\n", 
 		       itr->file_name, sign, pthread_self());
+		pthread_mutex_unlock(rwlock);
 	}
 
 	pthread_exit(0);  
@@ -240,8 +292,10 @@ void do_read(file_node *fnode, char *sign, int sign_size, queue *q, pthread_rwlo
 				
 				// Task #5 - Reader yield read lock during queueing, then reobtain after 
 				printf("** READ exit - do_read - Reader queueing: file: %s, at index: %d, Thread number: %ld\n", 
-				       fnode->file_name, j-sign_size, pthread_self());	
+				       fnode->file_name, j-sign_size, pthread_self());
+		        pthread_mutex_unlock(rwlock);	
 				write_queue(fnode, j-sign_size, sign_size, q, rwlock);
+				pthread_mutex_lock(rwlock);
 				printf("** READ entry - do_read - Reader queueing done: file: %s, at index: %d, Thread number: %ld\n", 
 				       fnode->file_name, j-sign_size, pthread_self());	
 			}
@@ -261,7 +315,9 @@ void do_read(file_node *fnode, char *sign, int sign_size, queue *q, pthread_rwlo
 		{
 			printf("** READ exit - do_read ** - Reader pausing: file: %s, Sign: %s, Thread number: %ld, at index: %d\n", 
 			       fnode->file_name, sign, pthread_self(), j);
+			pthread_mutex_unlock(rwlock);
 			usleep(1000);
+			pthread_mutex_lock(rwlock);
 			printf("** READ entry - do_read ** - Reader after pause: file: %s, Sign: %s, Thread number: %ld, at index: %d\n", 
 			       fnode->file_name, sign, pthread_self(), j);
 		} 
@@ -291,23 +347,30 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	n = new_node(fnode, loc, offset);
     
 	// Task #6 - readers queue jobs (if space) and signal writers
+	pthread_mutex_lock(&mut);
 	printf("** QUEUE entry ** : Reader Thread number: %ld\n", 
 	       pthread_self());
 
 	// Task #6 - readers wait (releasing mutex) if queue is full 
-	//           readers renter queue critical section when queue has a empty slot
+	//           readers reenter queue critical section when queue has a empty slot
 	// add logic to handle this case
-	printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
-	       pthread_self());
-	printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
-	       pthread_self());
+	if (q->full)
+	{
+		printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
+        pthread_self());
+		pthread_cond_wait(&condp, &mut);
+		printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
+        pthread_self());
+	}
     
 	/* Add work to the queue */
 	printf("Queueing... Reader Thread number: %ld\n", pthread_self());
 	printf("file name = %s, loc = %d, offset = %d\n",fnode->file_name, loc, offset);
 	queue_add((queue*)q, n);
+	pthread_cond_signal(&condc);
 
 	// Task #6 - done with queue
 	printf("** QUEUE exit ** : Reader Thread number: %ld\n", 
 	       pthread_self());
+	pthread_mutex_unlock(&mut);
 }

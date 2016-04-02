@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
 	pthread_t read_thread[RTHREADS];          
 	pthread_t *write_thread;
 
+	printf("\n");
 	if (argc < 3) 
 	{
 		printf("Usage: %s <Input file> <number_of_writer_threads> \n", argv[0]);
@@ -112,6 +113,8 @@ int main(int argc, char* argv[])
 	for(i=0; i < RTHREADS; i++)
 	{
 		// Won't work until Task #1 is completed
+		// the pthread_join() blocks the calling thread (main thread) until the
+		// specified threadid (read_thread[i]) thread terminates
 		pthread_join( read_thread[i], NULL);
 	}
 

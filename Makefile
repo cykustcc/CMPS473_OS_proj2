@@ -53,9 +53,10 @@ lib$(CSE473LIB).a : $(CSE473LIBOBJS)
 	$(RANLIB) $@
 
 run:
-	untar xvf test.tar
-	./cse473-p2 ./test 3
-	#./cse473-p2 ./test 3 > log.txt
+	@cp ../test/2000010.txt ./test
+	@cp ../test/ethics.txt ./test
+	@cp ../test/gems.txt ./test
+	./cse473-p2 ./test 2 > log.txt
 
 clean:
 	rm -f *.o *~ $(TARGETS) $(LIBOBJS) lib$(CSE473LIB).a 

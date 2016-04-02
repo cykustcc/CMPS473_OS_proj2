@@ -99,7 +99,7 @@ node* read_queue(queue* q)
 	// Task #7 - Writers 
 	printf("++ Writer is checking queue: Thread number: %ld\n", 
 	       pthread_self());
-
+	pthread_mutex_lock(&mut);
 	printf("** QUEUE entry ** : Writer Thread number: %ld\n", 
 	       pthread_self());
 
@@ -109,6 +109,7 @@ node* read_queue(queue* q)
 	{   
 		printf("** QUEUE Exit - Writer - empty (waiting): Thread number: %ld\n", 
 		       pthread_self());
+		pthread_cond_wait(&condc, &mut);
 		printf("** QUEUE Entry - Writer - not empty: Thread number: %ld\n", 
 		       pthread_self());
 
@@ -122,12 +123,14 @@ node* read_queue(queue* q)
 	}
     
 	n = queue_delete(q);
+	pthread_cond_signal(&condp);
 
 	/* NOTE: queue may be empty even after signaling (other writer won race)
 	   so no job for some writers */
 
 	printf("** QUEUE exit ** : Writer Thread number: %ld\n", 
 	       pthread_self());
+	pthread_mutex_unlock(&mut);
 
 	return n;
 }
@@ -152,7 +155,10 @@ void do_write(node *n)
 	pthread_rwlock_t* rwlock;
 
 	// Task #8 - Writers obtain lock for writing file, then release
-	printf("** WRITE Entry ** - Writer Thread number: %ld\n", pthread_self());
+	pthread_mutex_lock(rwlock);
+	// printf("** WRITE Entry ** - Writer Thread number: %ld\n", pthread_self());
+	printf("** WRITE Entry ** - Writer Thread number: %ld; filename = %s, loc = %d, offset = %d\n",
+               pthread_self(), n->fnode->file_name, n->loc, n->offset);
 	printf("filename = %s, loc = %d, offset = %d\n",
 	       n->fnode->file_name, n->loc, n->offset);
    
@@ -174,9 +180,12 @@ void do_write(node *n)
     
 	fclose(wfp);
 
-	printf("** WRITE Exit ** - Writer Thread number: %ld\n", pthread_self());
+	// printf("** WRITE Exit ** - Writer Thread number: %ld\n", pthread_self());
+	printf("** WRITE Exit ** - Writer Thread number: %ld; filename = %s, loc = %d, offset = %d\n",
+           pthread_self(), n->fnode->file_name, n->loc, n->offset);
 	printf("filename = %s, loc = %d, offset = %d\n",
 	       n->fnode->file_name, n->loc, n->offset);
+	pthread_mutex_unlock(rwlock);
 }
 
 
