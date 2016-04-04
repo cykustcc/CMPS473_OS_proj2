@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 		// Won't work until Task #1 is completed
 		pthread_kill(write_thread[i], SIGALRM);
 	}
-
+	// usleep(1000);
 	printf("\nWriters done\n");
 
 	exit(0);

@@ -58,7 +58,7 @@ int read_dir(char* dir_name)
     DIR* FD;
     struct dirent* in_file;
     file_node* itr = file_map_list;
-    total_cnt=0;
+    // total_cnt=0;
 
     if (NULL == (FD = opendir (dir_name)))
     {

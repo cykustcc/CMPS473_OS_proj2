@@ -160,10 +160,10 @@ void do_write(node *n)
 	FILE *wfp;
 	// Readers-writers lock - per file
 	pthread_rwlock_t* rwlock;
-	rwlock=n->fnode->lock;
+
 
 	// Task #8 - Writers obtain lock for writing file, then release
-	pthread_mutex_lock(rwlock);
+	pthread_rwlock_wrlock(n->fnode->lock);
 	// printf("** WRITE Entry ** - Writer Thread number: %ld\n", pthread_self());
 	printf("** WRITE Entry ** - Writer Thread number: %ld; filename = %s, loc = %d, offset = %d\n",
                pthread_self(), n->fnode->file_name, n->loc, n->offset);
@@ -200,7 +200,7 @@ void do_write(node *n)
            pthread_self(), n->fnode->file_name, n->loc, n->offset);
 	// printf("filename = %s, loc = %d, offset = %d\n",
 	       // n->fnode->file_name, n->loc, n->offset);
-	pthread_mutex_unlock(rwlock);
+	pthread_rwlock_unlock(n->fnode->lock);
 }
 
 

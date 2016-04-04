@@ -196,7 +196,6 @@ void* thread_reader(void *Q)
 
 	/* Mix up the file list from this thread's perspective */
 	copy_list(file_map_list, &local_list);
-
 	shuffle_list(&local_list);
 
 
@@ -205,7 +204,7 @@ void* thread_reader(void *Q)
 	for(itr=local_list; itr!= NULL; itr=itr->next)
 	{
 		rwlock=itr->lock;
-		pthread_mutex_lock(rwlock);
+		pthread_rwlock_rdlock(rwlock);
 		printf("** READ Entry ** - Reading file: %s, Sign: %s, Thread number: %ld\n", 
 		       itr->file_name, sign, pthread_self());
 
@@ -215,7 +214,7 @@ void* thread_reader(void *Q)
 
 		printf("** READ Exit ** - is yielding when done with file: file: %s, Sign: %s, Thread number: %ld\n", 
 		       itr->file_name, sign, pthread_self());
-		pthread_mutex_unlock(rwlock);
+		pthread_rwlock_unlock(rwlock);
 	}
 
 	pthread_exit(0);  
@@ -264,9 +263,9 @@ void do_read(file_node *fnode, char *sign, int sign_size, queue *q, pthread_rwlo
 				// Task #5 - Reader yield read lock during queueing, then reobtain after 
 				printf("** READ exit - do_read - Reader queueing: file: %s, at index: %d, Thread number: %ld\n", 
 				       fnode->file_name, j-sign_size, pthread_self());
-		        pthread_mutex_unlock(rwlock);	
+		        pthread_rwlock_unlock(rwlock);	
 				write_queue(fnode, j-sign_size, sign_size, q, rwlock);
-				pthread_mutex_lock(rwlock);
+				pthread_rwlock_rdlock(rwlock);
 				printf("** READ entry - do_read - Reader queueing done: file: %s, at index: %d, Thread number: %ld\n", 
 				       fnode->file_name, j-sign_size, pthread_self());	
 			}
@@ -286,9 +285,9 @@ void do_read(file_node *fnode, char *sign, int sign_size, queue *q, pthread_rwlo
 		{
 			printf("** READ exit - do_read ** - Reader pausing: file: %s, Sign: %s, Thread number: %ld, at index: %d\n", 
 			       fnode->file_name, sign, pthread_self(), j);
-			pthread_mutex_unlock(rwlock);
+			pthread_rwlock_unlock(rwlock);
 			usleep(1000);
-			pthread_mutex_lock(rwlock);
+			pthread_rwlock_rdlock(rwlock);
 			printf("** READ entry - do_read ** - Reader after pause: file: %s, Sign: %s, Thread number: %ld, at index: %d\n", 
 			       fnode->file_name, sign, pthread_self(), j);
 		} 
