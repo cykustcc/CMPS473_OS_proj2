@@ -58,17 +58,32 @@ run:
 	@cp ../test/gems.txt ./test
 	./cse473-p2 ./test 2 > log.txt
 
-runtest:
+runtest2:
 	@cp ../test/2000010.txt ./test
 	@cp ../test/ethics.txt ./test
 	@cp ../test/gems.txt ./test
+	@echo "=========== Before Scan ==========="
+	@grep -r -E 'but|and|rat|and|far' ./test | wc -l
 	./cse473-p2 ./test 2 > log.txt
+	@echo "=========== After Scan ==========="
+	@grep -r -E 'but|and|rat|and|far' ./test | wc -l
 	python test.py -i log.txt
+runtest3:
 	@cp ../test/2000010.txt ./test
 	@cp ../test/ethics.txt ./test
 	@cp ../test/gems.txt ./test
-	./cse473-p2 ./test 2 > log.txt
+	@echo "=========== Before Scan ==========="
+	@grep -r -E 'but|and|rat|and|far' ./test | wc -l
+	./cse473-p2 ./test 3 > log.txt
+	@echo "=========== After Scan ==========="
+	@grep -r -E 'but|and|rat|and|far' ./test | wc -l
 	python test.py -i log.txt
+
+refreshtest:
+	@cp ../test/2000010.txt ./test
+	@cp ../test/ethics.txt ./test
+	@cp ../test/gems.txt ./test
+
 
 clean:
 	rm -f *.o *~ $(TARGETS) $(LIBOBJS) lib$(CSE473LIB).a 

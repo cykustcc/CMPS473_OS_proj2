@@ -113,8 +113,9 @@ node* read_queue(queue* q)
 	{   
 		printf("** QUEUE Exit - Writer - empty (waiting): Thread number: %ld\n", 
 		       pthread_self());
-		pthread_cond_broadcast(&condp);
-		pthread_cond_wait(&condc, &mut);
+		while(q->empty){
+			pthread_cond_wait(&condc, &mut);
+		}
 		printf("** QUEUE Entry - Writer - not empty: Thread number: %ld\n", 
 		       pthread_self());
 
@@ -123,13 +124,14 @@ node* read_queue(queue* q)
 
 		if ((read_over == 1) && (q->empty == 1))
 		{
+			printf("** QUEUE exit ** : Readers done, empty queue : Writer Thread number: %ld\n", pthread_self());
 			pthread_cond_signal(&condp);
 			pthread_exit(0);
 		}
 	}
     
 	n = queue_delete(q);
-
+	pthread_cond_signal(&condp);
 	/* NOTE: queue may be empty even after signaling (other writer won race)
 	   so no job for some writers */
 
@@ -158,6 +160,7 @@ void do_write(node *n)
 	FILE *wfp;
 	// Readers-writers lock - per file
 	pthread_rwlock_t* rwlock;
+	rwlock=n->fnode->lock;
 
 	// Task #8 - Writers obtain lock for writing file, then release
 	pthread_mutex_lock(rwlock);
@@ -195,8 +198,8 @@ void do_write(node *n)
 	// printf("** WRITE Exit ** - Writer Thread number: %ld\n", pthread_self());
 	printf("** WRITE Exit ** - Writer Thread number: %ld; filename = %s, loc = %d, offset = %d\n",
            pthread_self(), n->fnode->file_name, n->loc, n->offset);
-	printf("filename = %s, loc = %d, offset = %d\n",
-	       n->fnode->file_name, n->loc, n->offset);
+	// printf("filename = %s, loc = %d, offset = %d\n",
+	       // n->fnode->file_name, n->loc, n->offset);
 	pthread_mutex_unlock(rwlock);
 }
 

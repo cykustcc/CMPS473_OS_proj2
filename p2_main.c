@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 	for(i=0; i < RTHREADS; i++)
 	{
 		// Task #1 - Create reader threads
-		status=pthread_create(&read_thread[i],NULL,thread_reader,q);
+		status=pthread_create(&read_thread[i],NULL,thread_reader,(void*) q);
 		if(status!=0)
 			printf("reader_thread %d creation error!",i);
 	}
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 	for(i=0; i < wthreads; i++)
 	{
 		// Task #1 - Create writer threads
-		status=pthread_create(&write_thread[i],NULL,thread_writer,q);
+		status=pthread_create(&write_thread[i],NULL,thread_writer,(void*) q);
 		if(status!=0)
 			printf("reader_thread %d creation error!",i);
 	}

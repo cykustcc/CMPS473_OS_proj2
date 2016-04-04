@@ -329,7 +329,7 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	{
 		printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
         pthread_self());
-        pthread_cond_broadcast(&condc);
+        
 		pthread_cond_wait(&condp, &mut);
 		printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
         pthread_self());
@@ -339,7 +339,7 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	printf("Queueing... Reader Thread number: %ld\n", pthread_self());
 	printf("file name = %s, loc = %d, offset = %d\n",fnode->file_name, loc, offset);
 	queue_add((queue*)q, n);
-
+	pthread_cond_signal(&condc);
 	// Task #6 - done with queue
 	printf("** QUEUE exit ** : Reader Thread number: %ld\n", 
 	       pthread_self());
