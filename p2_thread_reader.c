@@ -78,7 +78,6 @@ file_node *get_nth_node (file_node** local_list, int index)
 	     node = node->next, next_node = next_node->next, i++) 
 	{
 		if (index == i+1) 
-		// if (index==i)
 		{
 			return node;
 		}
@@ -119,7 +118,6 @@ void copy_list(file_node *src, file_node **dest)
 {
 	file_node *itr, *tmp;
 	for(itr=file_map_list; itr!= NULL; itr=itr->next)
-	// for(itr=src; itr!= NULL; itr=itr->next)
 	{
 		tmp = (file_node*) malloc(sizeof(file_node));
 		tmp->file_name = itr->file_name;
