@@ -66,9 +66,6 @@ void print_list(file_node *list)
 
 file_node *get_nth_node (file_node** local_list, int index) 
 {
-#ifdef DEBUG
-	printf("ENTER get_nth_node\n");
-#endif	
 	file_node *node, *tmp, *next_node;
 	int i = 1;
 	node = *local_list;
@@ -83,9 +80,6 @@ file_node *get_nth_node (file_node** local_list, int index)
 		if (index == i+1) 
 		// if (index==i)
 		{
-#ifdef DEBUG
-	printf("EXIT get_nth_node\n");
-#endif	
 			return node;
 		}
 	}
@@ -93,9 +87,6 @@ file_node *get_nth_node (file_node** local_list, int index)
  
 void shuffle_list (file_node** local_list) 
 {
-#ifdef DEBUG
-	printf("ENTER shuffle_list\n");
-#endif	
 	file_node *node, *tmp;
 	int idx;
 	int cnt = total_cnt;
@@ -122,9 +113,6 @@ void shuffle_list (file_node** local_list)
 
 		cnt--;
 	}
-#ifdef DEBUG
-	printf("EXIT shuffle_list\n");
-#endif
 }
 
 void copy_list(file_node *src, file_node **dest)
@@ -207,27 +195,10 @@ void* thread_reader(void *Q)
 	printf("Reader Thread number: %ld, sign: %s\n", pthread_self(), sign);
 
 	/* Mix up the file list from this thread's perspective */
-#ifdef DEBUG
-	printf("#######################(Before copy_list)\n");
-	print_list(file_map_list);
-	// print_list(&local_list);
-#endif
 	copy_list(file_map_list, &local_list);
-#ifdef DEBUG
-	printf("#######################(After copy_list)\n");
-	print_list(file_map_list);
-	print_list(&local_list);
-#endif
 
-#ifdef DEBUG
-	printf("#######################(Before shuffle_list)\n");
-	print_list(local_list);
-#endif
 	shuffle_list(&local_list);
-#ifdef DEBUG
-	print_list(local_list);
-	printf("#######################(After shuffle_list)\n");
-#endif
+
 
 	// Task #3 - Ensure that readers have read lock for do_read 
 	/* scan files in "local_list" in order for "signature" */
@@ -358,6 +329,7 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	{
 		printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
         pthread_self());
+        pthread_cond_broadcast(&condc);
 		pthread_cond_wait(&condp, &mut);
 		printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
         pthread_self());
@@ -367,7 +339,6 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	printf("Queueing... Reader Thread number: %ld\n", pthread_self());
 	printf("file name = %s, loc = %d, offset = %d\n",fnode->file_name, loc, offset);
 	queue_add((queue*)q, n);
-	pthread_cond_signal(&condc);
 
 	// Task #6 - done with queue
 	printf("** QUEUE exit ** : Reader Thread number: %ld\n", 

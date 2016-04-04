@@ -78,6 +78,10 @@ void *thread_writer(void *Q)
 		if (n != NULL)
 		{
 			do_write(n);
+		}else{
+#ifndef DEBUG
+			printf("n == NULL\n");
+#endif
 		}
 	}
 }
@@ -109,12 +113,14 @@ node* read_queue(queue* q)
 	{   
 		printf("** QUEUE Exit - Writer - empty (waiting): Thread number: %ld\n", 
 		       pthread_self());
+		pthread_cond_broadcast(&condp);
 		pthread_cond_wait(&condc, &mut);
 		printf("** QUEUE Entry - Writer - not empty: Thread number: %ld\n", 
 		       pthread_self());
 
 		/* make sure thread completes when reading is done */
 		/* leave at end of this "IF block */
+
 		if ((read_over == 1) && (q->empty == 1))
 		{
 			pthread_cond_signal(&condp);
@@ -123,7 +129,6 @@ node* read_queue(queue* q)
 	}
     
 	n = queue_delete(q);
-	pthread_cond_signal(&condp);
 
 	/* NOTE: queue may be empty even after signaling (other writer won race)
 	   so no job for some writers */
@@ -159,8 +164,7 @@ void do_write(node *n)
 	// printf("** WRITE Entry ** - Writer Thread number: %ld\n", pthread_self());
 	printf("** WRITE Entry ** - Writer Thread number: %ld; filename = %s, loc = %d, offset = %d\n",
                pthread_self(), n->fnode->file_name, n->loc, n->offset);
-	printf("filename = %s, loc = %d, offset = %d\n",
-	       n->fnode->file_name, n->loc, n->offset);
+	// printf("filename = %s, loc = %d, offset = %d\n", n->fnode->file_name, n->loc, n->offset);
    
 	memset(filename, '\0', 50 * sizeof(char));
 	strcat(filename, dirname);
@@ -169,15 +173,23 @@ void do_write(node *n)
 
 	wfp = fopen(filename, "r+");
 	fseek( wfp, n->loc, SEEK_SET );
-
+#ifdef DEBUG
+		printf("~~PUT CHAR:");
+#endif
 	while(i < n->offset)
 	{
 		ch = fgetc(wfp);
 		fseek( wfp, -1, SEEK_CUR );
 		fputc(toupper(ch), wfp);
+#ifdef DEBUG
+		printf("%s", ch);
+#endif
 		i++;
 	}
-    
+#ifdef DEBUG
+		printf("\n");
+#endif
+
 	fclose(wfp);
 
 	// printf("** WRITE Exit ** - Writer Thread number: %ld\n", pthread_self());
