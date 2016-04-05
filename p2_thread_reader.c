@@ -322,15 +322,17 @@ void write_queue(file_node* fnode, int loc, int offset, queue* q, pthread_rwlock
 	// Task #6 - readers wait (releasing mutex) if queue is full 
 	//           readers reenter queue critical section when queue has a empty slot
 	// add logic to handle this case
+	printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
+        pthread_self());
 	while (q->full)
 	{
-		printf("** QUEUE exit ** - full (waiting) : Reader Thread number: %ld\n", 
-        pthread_self());
+
         
 		pthread_cond_wait(&condp, &mut);
-		printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
-        pthread_self());
+
 	}
+	printf("** QUEUE entry ** - full (signalled) : Reader Thread number: %ld\n", 
+    pthread_self());
     
 	/* Add work to the queue */
 	printf("Queueing... Reader Thread number: %ld\n", pthread_self());
